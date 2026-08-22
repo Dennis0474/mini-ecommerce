@@ -29,3 +29,21 @@ future review).
   Reason: Each of these adds meaningful complexity (partial refunds affect the order state
   machine; multi-seller cart affects checkout and payment splitting) that isn't needed to
   prove the core system design concepts this project targets.
+
+## ADR-005: sellerId stored directly on Order
+
+Decision: Order has a direct sellerId field (not derived through OrderItem → Product).
+Reason: Enforces "one order = one seller" (ADR-004) structurally at the schema level,
+rather than relying on application code to reject mixed-seller carts. A structural
+constraint can't be bypassed by a future bug; an application-level check can.
+
+## ADR-006: User modeled as base table + role-specific extension tables
+
+Decision: A single User table holds shared fields (email, password, name) plus a `role`
+enum (BUYER, SELLER, ADMIN). Buyer, Seller, and Admin are separate tables, each with a
+1-to-1 relation back to User, holding only role-specific fields (e.g. Seller: store name,
+payout info).
+Reason: Role-specific fields differ enough (Sellers need payout/store data Buyers never
+need) that a single flat table would carry nullable fields for roles that don't use them.
+The enum on User answers "which extension table to join"; the extension table answers
+"what does this role need" — separate concerns, not redundant.
