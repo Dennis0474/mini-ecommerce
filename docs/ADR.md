@@ -47,3 +47,28 @@ Reason: Role-specific fields differ enough (Sellers need payout/store data Buyer
 need) that a single flat table would carry nullable fields for roles that don't use them.
 The enum on User answers "which extension table to join"; the extension table answers
 "what does this role need" — separate concerns, not redundant.
+
+## ADR-007: Inventory as a single stock field on Product
+
+Decision: Stock is tracked as a single integer field directly on Product, not a separate
+Inventory table.
+Reason: v1 scope has no product variants and no audit-trail requirement for stock history.
+A separate table would add a join with no corresponding benefit at this scope. The
+oversell problem (concurrent purchases) is a concern for transaction/query design
+(Module 4), not schema shape — splitting the table would not have addressed it.
+
+## ADR-008: Price snapshotted on OrderItem at purchase time
+
+Decision: OrderItem stores its own `price` field, captured at the time of purchase —
+not derived by joining to the current Product.price.
+Reason: An order is a historical record. If Product.price changes later (increase or
+decrease), past orders must remain accurate to what the buyer actually paid. Deriving
+price live from Product would silently corrupt historical order data.
+
+## ADR-009: cuid() IDs instead of autoincrement integers
+
+Decision: All models use `id String @id @default(cuid())` instead of
+`id Int @id @default(autoincrement())`.
+Reason: Sequential integer IDs are predictable/enumerable (e.g. reveals total user count,
+allows guessing adjacent records). cuid() generates random, non-sequential string IDs,
+closing that information leak — relevant since this is a public-facing marketplace.
