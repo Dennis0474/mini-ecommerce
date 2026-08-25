@@ -12,7 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model User {
   id       String  @id @default(cuid())
   username String  @unique
@@ -29,9 +28,10 @@ model Buyer {
 }
 
 model Seller {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  id       String    @id @default(cuid())
+  userId   String    @unique
+  user     User      @relation(fields: [userId], references: [id])
+  products Product[]
 }
 
 model Admin {
@@ -44,4 +44,15 @@ enum Role {
   BUYER
   SELLER
   ADMIN
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sellerId    String
+  seller      Seller   @relation(fields: [sellerId], references: [id])
+  name        String
+  description String
+  price       Int
+  stock       Int
+  createdAt   DateTime @default(now())
 }

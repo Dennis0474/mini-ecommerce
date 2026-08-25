@@ -72,3 +72,9 @@ Decision: All models use `id String @id @default(cuid())` instead of
 Reason: Sequential integer IDs are predictable/enumerable (e.g. reveals total user count,
 allows guessing adjacent records). cuid() generates random, non-sequential string IDs,
 closing that information leak — relevant since this is a public-facing marketplace.
+
+## ADR-010: Product includes createdAt for buyer-facing sort
+
+Decision: Product has a createdAt DateTime @default(now()) field.
+Reason: Supports buyer browse/search flow — sorting listings "newest first." Independent
+of Admin metrics, which depend on Order.createdAt instead, not Product.
