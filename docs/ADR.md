@@ -78,3 +78,50 @@ closing that information leak — relevant since this is a public-facing marketp
 Decision: Product has a createdAt DateTime @default(now()) field.
 Reason: Supports buyer browse/search flow — sorting listings "newest first." Independent
 of Admin metrics, which depend on Order.createdAt instead, not Product.
+
+## ADR-011: Server Actions for internal mutations
+
+Decision: Operations initiated only by our own frontend (e.g. seller creates listing)
+use Server Actions, not Route Handlers.
+Reason: No external caller needs a stable HTTP contract for these operations. Route
+Handlers are reserved for cases with an external initiator (e.g. payment webhooks,
+future mobile client).
+
+## ADR-012: Purchase flow split across Server Action and Route Handler
+
+Decision: "Buyer purchases a product" is two separate operations, not one:
+
+1. Buyer clicks "buy" → Server Action (buyer-initiated) creates a pending Order,
+   calls the payment provider's API, redirects buyer to hosted checkout.
+2. Payment provider confirms success/failure → Route Handler (webhook), called
+   asynchronously by the payment provider as the initiator, not our own frontend.
+   Reason: The two steps have different initiators at different times — our own UI for
+   step 1, an external system (payment provider) for step 2 — so they require different
+   mechanisms per ADR-011's reasoning.
+
+## ADR-013: Database sessions over JWT
+
+Decision: Use database-backed sessions (session row in Postgres, session ID cookie),
+not JWT.
+Reason: Admin's "suspend a seller/buyer" flow (Module 0) requires suspension to take
+effect immediately. JWT validity persists until expiry regardless of DB state — a
+suspended user's token would keep working until it expires. DB sessions are checked
+against live state on every request, closing that gap.
+
+## ADR-014: Authorization enforced at the data-access layer, not just UI
+
+Decision: Every mutation verifies ownership/permission in the query itself
+(e.g. WHERE sellerId = session.user.id AND id = productId), not only by hiding
+UI elements.
+Reason: UI checks are bypassable — Server Actions can be called directly, and a
+hidden button provides no server-side guarantee. The query-level check, run against
+the server-verified session (ADR-013), is the only check that can't be bypassed and
+is therefore the actual security boundary. UI checks exist only for user experience.
+
+## ADR-015: Credentials provider for v1 authentication
+
+Decision: Auth.js configured with the Credentials provider (email/password) only.
+OAuth (Google/GitHub) deferred to a future version.
+Reason: Signup must capture role (BUYER/SELLER) per ADR-001/006. Credentials gives
+full control of the signup form to collect this; OAuth hands back only email/profile
+with no natural point to choose a role without extra onboarding steps.
