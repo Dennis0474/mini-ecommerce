@@ -125,3 +125,15 @@ OAuth (Google/GitHub) deferred to a future version.
 Reason: Signup must capture role (BUYER/SELLER) per ADR-001/006. Credentials gives
 full control of the signup form to collect this; OAuth hands back only email/profile
 with no natural point to choose a role without extra onboarding steps.
+
+## ADR-016: Conditional atomic update prevents overselling
+
+Decision: Purchase flow uses a single conditional update
+(`WHERE id = productId AND stock >= quantity`) to decrement stock, wrapped with
+Order/OrderItem creation in one Prisma $transaction.
+Reason: Naive "read stock, check in code, then write" has a race condition — two
+concurrent requests can both pass the check before either writes, allowing overselling.
+The conditional update makes check-and-decrement one atomic database operation, so
+Postgres itself guarantees only one concurrent request can succeed when stock is
+insufficient for both. The transaction ensures Order/OrderItem are never created
+without a corresponding successful stock decrement, and vice versa.
