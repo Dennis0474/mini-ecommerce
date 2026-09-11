@@ -137,3 +137,17 @@ The conditional update makes check-and-decrement one atomic database operation, 
 Postgres itself guarantees only one concurrent request can succeed when stock is
 insufficient for both. The transaction ensures Order/OrderItem are never created
 without a corresponding successful stock decrement, and vice versa.
+
+## ADR-017: Stock decremented at payment confirmation, not checkout initiation
+
+Decision: Stock is not touched when a buyer clicks "buy." Order is created with
+status PENDING, no stock change. Stock decrements only inside the payment webhook
+handler, once the payment provider confirms success — using the same atomic
+conditional-update pattern from ADR-016.
+Reason: Decrementing stock at checkout-click time (before payment) risks stranding
+inventory if the buyer abandons checkout — stock would need to be restored via a
+timeout/cleanup mechanism, adding complexity. Deferring the decrement to confirmed
+payment means stock only ever reflects real, paid orders. The atomic-decrement
+protection from ADR-016 is unaffected by this timing — it holds regardless of which
+part of the flow invokes it, since the guarantee comes from Postgres, not from
+sequencing.
