@@ -151,3 +151,12 @@ payment means stock only ever reflects real, paid orders. The atomic-decrement
 protection from ADR-016 is unaffected by this timing — it holds regardless of which
 part of the flow invokes it, since the guarantee comes from Postgres, not from
 sequencing.
+
+## ADR-018: Stripe Checkout (hosted) over Stripe Elements
+
+Decision: Use Stripe Checkout — buyer is redirected to Stripe's hosted payment page —
+rather than building a custom payment form with Stripe Elements.
+Reason: Server never handles raw card data, avoiding PCI compliance burden entirely.
+Custom UI control (Elements) isn't needed for this project's goals; Checkout is
+faster to integrate correctly and is the safer default absent a specific need for
+embedded payment UI.
