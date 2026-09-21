@@ -16,6 +16,7 @@ model User {
   role     Role    @default(BUYER)
   sessions Session[]
   accounts Account[]
+  suspendedAt DateTime?
 }
 
 model Buyer {
