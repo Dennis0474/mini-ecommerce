@@ -160,3 +160,16 @@ Reason: Server never handles raw card data, avoiding PCI compliance burden entir
 Custom UI control (Elements) isn't needed for this project's goals; Checkout is
 faster to integrate correctly and is the safer default absent a specific need for
 embedded payment UI.
+
+## ADR-019: JWT strategy with live suspension check (supersedes ADR-013)
+
+Decision: Session strategy changed from "database" to "jwt". Suspension is enforced
+by checking the user's suspended status against the database inside the `session`
+callback on every request, rather than relying on session-row deletion.
+Reason: Auth.js's Credentials provider is fundamentally incompatible with database
+session strategy — this is a hard library limitation, not a config issue (confirmed
+via Auth.js source/docs: "Signing in with credentials only supported if JWT strategy
+is enabled"). JWT strategy is required to use Credentials at all. The session callback
+already runs on every session check, so querying suspension status there achieves
+ADR-013's original goal (near-instant suspension enforcement) without needing
+database-backed sessions.
