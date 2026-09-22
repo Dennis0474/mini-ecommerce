@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/../auth"; // adjust path to wherever auth.ts actually lives
+import { auth } from "@/../auth"; 
 
 export async function createListing(formData: FormData) {
   const session = await auth();

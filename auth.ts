@@ -1,4 +1,5 @@
 import NextAuth, { type Session } from "next-auth";
+import { type JWT } from "@auth/core/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma"; 
@@ -39,19 +40,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       token.role = user.role;
       token.id = user.id;
     }
+
+    const dbUser = await prisma.user.findUnique({
+      where: { id: token.id as string },
+    });
+
+    if (dbUser?.suspendedAt) {
+      return null as unknown as JWT;
+    }
+
     return token;
   },
   async session({ session, token }) {
     if (session.user) {
       session.user.role = token.role;
       session.user.id = token.id;
-      const user = await prisma.user.findUnique({
-      where: { id: token.id},
-    });
-
-    if (user?.suspendedAt) {
-      return null as unknown as Session;
-    }
     }
     return session;
   },
