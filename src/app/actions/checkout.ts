@@ -19,6 +19,15 @@ export async function checkout(productId: string, quantity: number, buyerId: str
       buyerId
     },
   });
+
+  await prisma.orderItem.create({
+data: {
+  orderId: order.id,
+  productId,
+  quantity,
+  purchasePrice: product.price
+}
+  });
     
   const session = await stripe.checkout.sessions.create({
   mode: "payment",
