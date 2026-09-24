@@ -182,3 +182,13 @@ Reason: v1 scope has a small product catalog with no relevance-ranking or stemmi
 requirement. Full-text search solves problems (query performance at scale, word-variant
 matching) that don't exist at this scale. Matches the same reasoning as ADR-007 —
 added complexity should be justified by an actual requirement, not adopted preemptively.
+
+## ADR-021: No caching layer for v1
+
+Decision: searchProducts (and product queries generally) run directly against
+Postgres with no caching layer (Redis, Next.js fetch cache, etc.) for v1.
+Reason: Caching solves a performance problem — slow repeated queries under real
+traffic — that doesn't exist at this project's scale (small catalog, no production
+load). Adding it now would be complexity without justification, same reasoning as
+ADR-007 and ADR-020. Revisit if/when real usage patterns show query latency is
+actually a problem.
