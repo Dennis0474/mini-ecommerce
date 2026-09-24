@@ -173,3 +173,12 @@ is enabled"). JWT strategy is required to use Credentials at all. The session ca
 already runs on every session check, so querying suspension status there achieves
 ADR-013's original goal (near-instant suspension enforcement) without needing
 database-backed sessions.
+
+## ADR-020: Basic substring search (Prisma `contains`) over full-text search
+
+Decision: Product search uses Prisma's `contains` (case-insensitive) against
+name/description, not Postgres full-text search or a dedicated search engine.
+Reason: v1 scope has a small product catalog with no relevance-ranking or stemming
+requirement. Full-text search solves problems (query performance at scale, word-variant
+matching) that don't exist at this scale. Matches the same reasoning as ADR-007 —
+added complexity should be justified by an actual requirement, not adopted preemptively.
