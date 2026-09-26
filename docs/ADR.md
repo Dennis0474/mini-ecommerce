@@ -192,3 +192,12 @@ traffic — that doesn't exist at this project's scale (small catalog, no produc
 load). Adding it now would be complexity without justification, same reasoning as
 ADR-007 and ADR-020. Revisit if/when real usage patterns show query latency is
 actually a problem.
+
+## ADR-023: No background queue for v1
+
+Decision: No background job queue (BullMQ, or similar) is used in v1.
+Reason: No current flow has a non-critical, decouplable side effect (e.g., email
+notifications) that would benefit from being queued rather than run inline. Introducing
+a queue now would add infrastructure (a queue backend, worker process) with nothing
+real for it to do. Revisit if a future feature (e.g., order confirmation emails)
+introduces a genuine candidate.
