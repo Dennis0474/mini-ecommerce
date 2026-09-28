@@ -201,3 +201,13 @@ notifications) that would benefit from being queued rather than run inline. Intr
 a queue now would add infrastructure (a queue backend, worker process) with nothing
 real for it to do. Revisit if a future feature (e.g., order confirmation emails)
 introduces a genuine candidate.
+
+## ADR-024: Rate limiting deferred to v2
+
+Decision: No rate limiting implemented for v1. Priority candidates identified for v2:
+`authorize` (brute-force login protection) and `checkout` (prevents API cost abuse
+and junk Order creation via repeated calls).
+Reason: Implementing rate limiting properly requires a shared store (e.g., Redis) to
+track request counts across Vercel's stateless serverless invocations — real
+infrastructure investment not justified yet at v1 scale/traffic. Deferred consciously,
+same as OAuth (ADR-015) and reviews (ADR-003), rather than overlooked.
